@@ -1,0 +1,9 @@
+127.0.0.1 - - [21/May/2014:16:52:14 +0300] "GET / HTTP/1.1" 404 955
+0:0:0:0:0:0:0:1 - - [21/May/2014:16:52:15 +0300] "GET /webstore/WEB-INF/classes/il/ac/hit/WebstoreController.java HTTP/1.1" 404 952
+127.0.0.1 - - [21/May/2014:17:00:38 +0300] "GET / HTTP/1.1" 404 955
+0:0:0:0:0:0:0:1 - - [21/May/2014:17:00:38 +0300] "GET /webstore/controller/* HTTP/1.1" 500 3574
+127.0.0.1 - - [21/May/2014:17:02:41 +0300] "GET / HTTP/1.1" 404 955
+0:0:0:0:0:0:0:1 - - [21/May/2014:17:02:42 +0300] "GET /webstore/controller/* HTTP/1.1" 200 -
+0:0:0:0:0:0:0:1 - - [21/May/2014:17:03:00 +0300] "GET /webstore/controller/adminLogin HTTP/1.1" 404 1039
+0:0:0:0:0:0:0:1 - - [21/May/2014:17:03:19 +0300] "GET /webstore/controller/coupons HTTP/1.1" 500 4693
+0:0:0:0:0:0:0:1 - - [21/May/2014:17:06:14 +0300] "GET /webstore/controller/* HTTP/1.1" 200 -
