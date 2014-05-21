@@ -1,0 +1,22 @@
+in the businesses.jsp take care of the for --> iterator.
+
+
+
+
+* ask if this the way to get the coupons list in JSP: 
+			Object ob = request.getAttribute("coupons");
+			List<Coupon> listOfBusinesses = (List<Coupon>)ob;
+			 
+* Getting all coupons by specific business id? can we use sql on the hibernate
+
+* ask if we had done "many to one" good?
+
+* should we use expression instead of out.print in JSP?
+
+* pathStringsArray[1] --> why in the first cell why have empty string ?
+
+* why we should have sessionID in every JSP?
+
+* the put method on the coupnsCart class.
+*update quatity for coupons?
+

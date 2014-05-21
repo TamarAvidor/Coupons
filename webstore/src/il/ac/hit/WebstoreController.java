@@ -1,0 +1,441 @@
+package il.ac.hit;
+
+//import javax.swingx.mapviewer.GeoPosition;
+//import net.java.html.geo.Position.Coordinates;
+//import java.lang.object;
+//import net.java.html.geo.position;
+import java.io.*;
+import java.lang.Object;
+//import android.location.Location;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Date;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.tools.JavaFileManager.Location;
+
+
+import sun.misc.Request;
+//import javax.websocket.Session;
+
+/**
+ * Servlet implementation class WebstoreController
+ */
+@WebServlet("/controller/*")
+public class WebstoreController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	private IDAO DAO;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public WebstoreController() {
+        super();
+        DAO =HibernateDAO.getInstance();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	@SuppressWarnings("deprecation")
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//PrintWriter out = response.getWriter();
+		//out.write(request.getPathInfo());
+		String path = request.getPathInfo();
+		String[] pathStringsArray = path.split("/");
+		
+		System.out.println("Fisrt cell:"+pathStringsArray[0]+" "+"Second cell:" + pathStringsArray[1]);
+		
+		if(pathStringsArray[1].equals("about"))
+		{
+			request.setAttribute("timestamp", new Date());
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/aboutscreen.jsp");
+			dispatcher.forward(request, response);
+		}
+		else if(pathStringsArray[1].equals("help"))
+		{
+			request.setAttribute("timestamp", new Date());
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/help.jsp");
+			dispatcher.forward(request, response);			
+		}
+		else if(pathStringsArray[1].equals("coupon"))
+		{
+			Object coup;
+			try {
+				int couponID = Integer.parseInt(request.getParameter("couponID"));
+				coup = DAO.getObject("Coupon", couponID);
+				request.setAttribute("coupon",coup);
+				RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/coupon.jsp");
+				dispatcher.forward(request, response);	
+			} catch (ObjectPlatformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//List<?> coupons = model.getCouponsFromDataBase();	
+		}
+		else if(pathStringsArray[1].equals("businesses"))
+		{
+			List <?> businessDataStructre = new ArrayList<Business>();
+			businessDataStructre = DAO.getRequestedObjectsFromDAO("Business");
+			request.setAttribute("businesses", businessDataStructre);
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/businesses.jsp");
+			dispatcher.forward(request, response);
+		}
+		else if(pathStringsArray[1].equals("businessByID"))
+		{
+			//path.split("/")
+			String BusinessID = pathStringsArray[2];
+			Business businessByID;
+			try {
+				businessByID = (Business) DAO.getObject("Business",Integer.parseInt(BusinessID));
+				request.setAttribute("BusinessCouponsSet", businessByID.getBusinessCouponsDataStructure());
+				request.setAttribute("businessByID", businessByID);
+				RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/businessByID.jsp");
+				dispatcher.forward(request, response);
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ObjectPlatformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}	
+		/*else if(pathStringsArray[1].equals("coupons"))
+		{
+			List <?> businessDataStructre = new ArrayList<Coupon>();
+			businessDataStructre =DAO.getRequestedObjectsFromDAO("Coupon");
+			request.setAttribute("coupons", businessDataStructre);
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/coupons.jsp");
+			dispatcher.forward(request, response);
+		}*/
+		else if(pathStringsArray[1].equals("adminLogin"))
+		{
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/adminLogin.jsp");
+			dispatcher.forward(request, response);	
+		}
+		else if(pathStringsArray[1].equals("adminPasswordAuthentication"))
+		{
+			int adminID = Integer.parseInt(request.getParameter("adminID"));
+			String password = request.getParameter("password");
+			HttpSession httpSession  = request.getSession(true);
+			PasswordSecurity passwordSecurity = new PasswordSecurity();
+			
+			//Meaning the admin user input was correct.
+			//therefor the business table will now be shown.
+		
+			if(passwordSecurity.passwordAuthentication(adminID, password) == true)
+			{
+				Administrator admin = null;
+				try 
+				{
+					admin = (Administrator) DAO.getObject("Administrator", adminID);
+				} catch (ObjectPlatformException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				String adminName = admin.getAdminUserName();
+				httpSession.setAttribute("connectedAdminName",adminName);
+				httpSession.setAttribute("connectedAdmin",adminID);
+				List <?> businessDataStructre = new ArrayList<Business>();
+				businessDataStructre = DAO.getRequestedObjectsFromDAO("Business");
+				request.setAttribute("businesses", businessDataStructre);
+				RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/businesses.jsp");
+				dispatcher.forward(request, response);
+			}
+			else
+			{
+	            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/adminLogin.jsp");
+	           // PrintWriter out = response.getWriter();//לא טוב כי רק בחלק של התצוגה מותר להדפיס הודעות למשתמש
+	            //out.println("<font color=red>Either AdminID or Password is wrong.</font>");
+	            String message = " Wrong details! ";
+	            request.setAttribute("LoginSuccessded", message);
+	            dispatcher.include(request, response);
+	            
+			//	RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/adminWrongLogin.jsp");
+			//	dispatcher.forward(request, response);
+			}
+		}	
+		else if(pathStringsArray[1].equals("couponsCart"))
+		{
+			CouponsCart couponsCart = (CouponsCart) request.getSession().getAttribute("cart");
+			if(couponsCart != null)
+			{
+				Map<Coupon,CouponsCartLine> couponsCartToUpdate = couponsCart.getCouponsCartInfo();
+				Date nowDate = new Date();
+				Iterator <CouponsCartLine> iterator = couponsCartToUpdate.values().iterator();
+				while(iterator.hasNext())
+				{
+					CouponsCartLine couponsCartLine = (CouponsCartLine)iterator.next();
+					Coupon couponToCheck = couponsCartLine.getCoupon();
+					if(nowDate.after(couponToCheck.getCouponExpersionDate()))
+					{
+						//If the coupons date has already passed.
+						//Then we would like to remove the current coupon.
+						iterator.remove();
+					}
+				}
+			}
+			
+			boolean confirmCoupon = true;
+			String couponIDInString = request.getParameter("couponID");
+			if (couponIDInString != null)
+			{
+				Integer couponID = null;
+				try
+				{
+					couponID = Integer.parseInt(couponIDInString); //Integer.parseInt(pathStringsArray[2]); 
+				}
+				catch (NumberFormatException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+					List<Object> couponsCartInfo = FavoritesCouponsInventory.getInventory();
+					Coupon SendcouponToView = null;
+					for (int i=0; i<couponsCartInfo.size(); i++)
+					{
+						SendcouponToView = (Coupon) couponsCartInfo.get(i);
+						if ((SendcouponToView.getCouponID() == couponID))
+						{
+							break;
+						}	
+					}
+					if(confirmCoupon == true)
+					{
+						request.setAttribute("coupon",SendcouponToView);
+
+					}
+			}
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/couponsCart.jsp");
+			dispatcher.forward(request, response);	
+		}
+		//Logout handle
+		else if(pathStringsArray[1].equals("logout")) 
+		{
+			response.setHeader("Cache-Control", "no-cache, no-store");
+			response.setHeader("Pragma", "no-cache");
+			request.getSession().invalidate();
+			response.sendRedirect(request.getContextPath() + "/controller/adminLogin");
+		}
+		//Delete business by ID
+		else if(pathStringsArray[1].equals("deleteBusinessByID")) 
+		{
+			Business businessByID;
+			String BusinessID = pathStringsArray[2];
+			try {
+				int businessID = Integer.parseInt(BusinessID);
+				businessByID = (Business) DAO.getObject("Business",businessID);
+				//businessByID.getBusinessCouponsDataStructure();
+				if (DAO.deleteObject(businessByID))
+				{
+					List <?> businessDataStructre = new ArrayList<Business>();
+					businessDataStructre = DAO.getRequestedObjectsFromDAO("Business");
+					request.setAttribute("businesses", businessDataStructre);
+		           // RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/businesses.jsp");
+		            PrintWriter out= response.getWriter();
+		            out.println("<font color=blue>business was deleted.</font>");
+		            //dispatcher.include(request, response);
+		            response.sendRedirect("http://localhost:8080/webstore/controller/businesses");
+				}
+			} catch (ObjectPlatformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}	
+		else if(pathStringsArray[1].equals("updateBusinessByID"))
+		{
+			if(pathStringsArray[2].equals("updateBusinessInfoByUser"))
+			{
+				String businessName = request.getParameter("Name");
+				String businessAddress = (request.getParameter("Address"));
+				String businessPhoneNumber =request.getParameter("PhoneNumber");
+				String businessCategory = request.getParameter("Category");
+				Integer businessID = Integer.parseInt(request.getParameter("BusinessID"));
+				try {
+					Business businessToUpdate = (Business)DAO.getObject("Business", businessID);
+					businessToUpdate.setBusinessName(businessName);
+					businessToUpdate.setBusinessAddress(businessAddress);
+					businessToUpdate.setBusinessPhoneNumber(businessPhoneNumber);
+					businessToUpdate.setBusinessCatgory(businessCategory);
+					DAO.updateObject(businessToUpdate);
+					List <?> businessDataStructre = new ArrayList<Business>();
+					businessDataStructre =DAO.getRequestedObjectsFromDAO("Business");
+					request.setAttribute("businesses", businessDataStructre);
+					//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/businesses.jsp");
+					//dispatcher.forward(request, response);
+					response.sendRedirect("http://localhost:8080/webstore/controller/businesses");
+				} catch (ObjectPlatformException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+			}
+			else
+			{
+				//path.split("/")
+				String BusinessID = pathStringsArray[2];
+				Business businessByID;
+				try {
+					businessByID = (Business) DAO.getObject("Business",Integer.parseInt(BusinessID));
+					request.setAttribute("businessByID", businessByID);
+					RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/updateBusinessByID.jsp");
+					dispatcher.forward(request, response);
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ObjectPlatformException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if(pathStringsArray[1].equals("deleteCouponByID"))
+		{
+			Coupon couponByID;
+			String CouponID = pathStringsArray[2];
+			try {
+				int couponID = Integer.parseInt(CouponID);
+				couponByID = (Coupon) DAO.getObject("Coupon",couponID);
+				//businessByID.getBusinessCouponsDataStructure();
+				if (DAO.deleteObject(couponByID))
+				{
+					List <?> couponDataStructre = new ArrayList<Coupon>();
+					couponDataStructre =DAO.getRequestedObjectsFromDAO("Coupon");
+					request.setAttribute("coupons", couponDataStructre);
+					
+		            //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/coupons.jsp");
+		            PrintWriter out= response.getWriter();
+		            out.println("<font color=blue>coupon was deleted.</font>");
+		            //dispatcher.include(request, response);
+		            response.sendRedirect("http://localhost:8080/webstore/controller/adminCoupons");
+				}
+			} catch (ObjectPlatformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if(pathStringsArray[1].equals("updateCouponByID"))
+		{
+			if(pathStringsArray[2].equals("updateCouponInfoByUser"))
+			{
+				String couponName = request.getParameter("Name");
+				Double couponPrice = (Double.parseDouble(request.getParameter("Price")));
+				//Date couponExpersionDate = new Date(request.getParameter("ExpersionDate"));
+				String couponCategory = request.getParameter("Category");
+				Integer couponID = Integer.parseInt(request.getParameter("CouponID"));
+				try {
+					Coupon couponToUpdate = (Coupon)DAO.getObject("Coupon", couponID);
+					couponToUpdate.setCouponName(couponName);
+					couponToUpdate.setCouponPrice(couponPrice);
+					//couponToUpdate.setCouponExpersionDate(couponExpersionDate);
+					couponToUpdate.setCouponCategory(couponCategory);
+					DAO.updateObject(couponToUpdate);
+					List <?> businessDataStructre = new ArrayList<Business>();
+					businessDataStructre =DAO.getRequestedObjectsFromDAO("Coupon");
+					request.setAttribute("coupons", businessDataStructre);
+					//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/coupons.jsp");
+					//dispatcher.forward(request, response);
+					response.sendRedirect("http://localhost:8080/webstore/controller/coupons");
+				} catch (ObjectPlatformException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				String couponID = pathStringsArray[2];
+				Coupon couponByID;
+				try {
+					couponByID = (Coupon) DAO.getObject("Coupon",Integer.parseInt(couponID));
+					request.setAttribute("couponByID", couponByID);
+					RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/updateCouponByID.jsp");
+					dispatcher.forward(request, response);
+					
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ObjectPlatformException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		else if(pathStringsArray[1].equals("location"))
+		{
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/location.jsp");
+			dispatcher.forward(request, response);
+		}
+		else if(pathStringsArray[1].equals("processLocation"))
+		{
+			//GeoPosition geoPosition = new GeoPosition();
+			//Location location = new Location();
+			//JSONObject locationJson = new JSONObject();
+			//LocationManager location = new l
+			//Geocoder geocoder = new Geocoder();
+			
+			String longitude = (String) request.getAttribute("longitude");
+			String latitude = (String) request.getAttribute("latitude");
+			
+			response.setContentType("text/plain");
+			response.getWriter().write("Tamar");
+
+		}
+		
+		else if(pathStringsArray[1].equals("coupons"))
+		{
+			String selectedCategory = request.getParameter("category");
+			List <?> couponsDataStructre = new ArrayList<Coupon>();
+			couponsDataStructre = DAO.getRequestedObjectsFromDAO("Coupon");
+			//int originalSizeOfList = couponsDataStructre.size();
+			
+			@SuppressWarnings("unchecked")
+			Iterator <Coupon> iterator = (Iterator<Coupon>) couponsDataStructre.listIterator();
+			
+			if(selectedCategory != null && selectedCategory != "All")
+			{
+				while(iterator.hasNext())
+				{
+					Coupon currentCoupon = (Coupon)iterator.next();
+					if(!(currentCoupon.getCouponCategory().equals(selectedCategory)))
+					{
+						iterator.remove();
+					}
+				}
+			}
+			request.setAttribute("coupons", couponsDataStructre);
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/coupons.jsp");
+			dispatcher.forward(request, response);
+
+		}
+		else if(pathStringsArray[1].equals("adminCoupons"))
+		{
+			List <?> couponsDataStructre = new ArrayList<Coupon>();
+			couponsDataStructre = DAO.getRequestedObjectsFromDAO("Coupon");
+			request.setAttribute("coupons", couponsDataStructre);
+			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/view/adminCoupons.jsp");
+			dispatcher.forward(request, response);
+		
+		}
+	}
+
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+{
+	doGet(request,response);
+}
+
+}

@@ -1,0 +1,17 @@
+- write at the blog about the app
+- ask user: "are you sure you want to delete this coupon?" in admin manager
+- location 
+- GitHub
+- exceptions - we should watch the video : https://www.youtube.com/watch?v=vOWCxKgrrSo
+- log4J
+- Name correctly all classes.
+- JUnit
+- PhoneGap
+- check admin's input. need to write another check unit for input legality.
+- add logout for admin.
+- what's a footer?
+
+
+
+
+
